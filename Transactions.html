@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Save Wisely | Transactions</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Transactions Log</h1>
+    <p style="text-align:center; font-size: 1.2rem; margin-bottom: 10px;">
+      Current Daily Allowance: ₱<span id="currentAllowance">0.00</span>
+    </p>
+    <div style="margin: 20px 0; text-align: center;">
+      <button onclick="clearTransactions()" class="button">Clear Log</button>
+      <button onclick="exportTransactionsToExcel()" class="button">Export to Excel</button>
+      <button onclick="window.location.href='Main Page.html'" class="button">Back to Dashboard</button>
+    </div>
+    <table class="transactions-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Category</th>
+          <th>Amount (₱)</th>
+        </tr>
+      </thead>
+      <tbody id="transactionsBody">
+      </tbody>
+    </table>
+  </div>
+
+  <div class="container" style="margin-top: 40px;">
+    <h2 style="text-align: center; color: #d4981e; font-size: 2rem; margin-bottom: 30px;">Financial Dashboard</h2>
+    
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="background: white; border-radius: 10px; padding: 25px; margin: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: inline-block; min-width: 220px;">
+        <h3 style="color: #666; font-size: 1.1rem; margin-bottom: 15px;">Total Balance</h3>
+        <div id="totalBalance" style="font-size: 2.2rem; font-weight: bold;">₱0.00</div>
+      </div>
+      <div style="background: white; border-radius: 10px; padding: 25px; margin: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: inline-block; min-width: 220px;">
+        <h3 style="color: #666; font-size: 1.1rem; margin-bottom: 15px;">Total Expenses</h3>
+        <div id="totalExpenses" style="font-size: 2.2rem; font-weight: bold; color: #e74c3c;">₱0.00</div>
+      </div>
+      <div style="background: white; border-radius: 10px; padding: 25px; margin: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: inline-block; min-width: 220px;">
+        <h3 style="color: #666; font-size: 1.1rem; margin-bottom: 15px;">Total Savings</h3>
+        <div id="totalSavings" style="font-size: 2.2rem; font-weight: bold;">₱0.00</div>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+      <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+        <div id="totalTransactionsCount" style="font-size: 1.5rem; font-weight: bold; color: #d4981e; margin-bottom: 5px;">0</div>
+        <div style="color: #666; font-size: 0.9rem;">Total Transactions</div>
+      </div>
+      <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+        <div id="avgExpense" style="font-size: 1.5rem; font-weight: bold; color: #d4981e; margin-bottom: 5px;">₱0.00</div>
+        <div style="color: #666; font-size: 0.9rem;">Average Expense</div>
+      </div>
+      <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+        <div id="avgSaving" style="font-size: 1.5rem; font-weight: bold; color: #d4981e; margin-bottom: 5px;">₱0.00</div>
+        <div style="color: #666; font-size: 0.9rem;">Average Saving</div>
+      </div>
+      <div style="background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+        <div id="monthlyNet" style="font-size: 1.5rem; font-weight: bold; color: #d4981e; margin-bottom: 5px;">₱0.00</div>
+        <div style="color: #666; font-size: 0.9rem;">Net This Month</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const transactions = JSON.parse(localStorage.getItem('transactionsLog')) || [];
+
+    /**
+     * NEW: Formats a number to have commas and two decimal places.
+     */
+    function formatNumber(num) {
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    
+    /**
+     * NEW: Exports the transactions log to an Excel file.
+     */
+    function exportTransactionsToExcel() {
+        if (transactions.length === 0) {
+            alert("No transactions to export!");
+            return;
+        }
+        const worksheetData = [
+            ["Date", "Type", "Category", "Amount"]
+        ];
+        transactions.forEach(t => {
+            worksheetData.push([t.date, t.type, t.category || 'N/A', parseFloat(t.amount)]);
+        });
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+        XLSX.writeFile(workbook, "transactions.xlsx");
+    }
+
+    function renderTransactions() {
+      const tbody = document.getElementById('transactionsBody');
+      tbody.innerHTML = '';
+      transactions.forEach(tx => {
+        const tr = document.createElement('tr');
+        // UPDATED: Use formatNumber for the amount
+        tr.innerHTML = `
+          <td>${tx.date}</td>
+          <td>${tx.type}</td>
+          <td>${tx.category || '-'}</td>
+          <td>${formatNumber(parseFloat(tx.amount))}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function clearTransactions() {
+      if (confirm('Are you sure you want to clear all transaction logs? This cannot be undone.')) {
+        localStorage.removeItem('transactionsLog');
+        location.reload();
+      }
+    }
+
+    function calculateDashboardStats() {
+      let totalExpenses = 0;
+      let totalSavingsFromLog = 0; // Explicit savings from log
+      let expenseCount = 0;
+      let savingCount = 0;
+      let monthlyExpenses = 0;
+      let monthlySavings = 0;
+
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+
+      transactions.forEach(tx => {
+        const amount = parseFloat(tx.amount);
+        const txDate = new Date(tx.date);
+
+        if (tx.type === 'Expense') {
+          totalExpenses += amount;
+          expenseCount++;
+          if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
+            monthlyExpenses += amount;
+          }
+        } else if (tx.type === 'Saving') {
+          totalSavingsFromLog += amount; // Accumulate explicit savings
+          savingCount++;
+          if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
+            monthlySavings += amount;
+          }
+        }
+      });
+
+      const budgetData = JSON.parse(localStorage.getItem('budgetData')) || { dailyAllowance: 0, totalSavings: 0 };
+      const dailyAllowance = budgetData.dailyAllowance || 0;
+      
+      // Balance is the current allowance. Savings are what's left of the allowance + explicit savings.
+      const totalBalance = dailyAllowance;
+      const totalEffectiveSavings = totalBalance + totalSavingsFromLog;
+      const monthlyNet = monthlySavings - monthlyExpenses;
+
+      // UPDATED: Use formatNumber for all currency outputs
+      document.getElementById('currentAllowance').textContent = formatNumber(dailyAllowance);
+      document.getElementById('totalBalance').textContent = `₱${formatNumber(totalBalance)}`;
+      document.getElementById('totalExpenses').textContent = `₱${formatNumber(totalExpenses)}`;
+      document.getElementById('totalSavings').textContent = `₱${formatNumber(totalEffectiveSavings)}`;
+      document.getElementById('totalTransactionsCount').textContent = transactions.length;
+      document.getElementById('avgExpense').textContent = expenseCount > 0 ? `₱${formatNumber(totalExpenses / expenseCount)}` : '₱0.00';
+      document.getElementById('avgSaving').textContent = savingCount > 0 ? `₱${formatNumber(totalSavingsFromLog / savingCount)}` : '₱0.00';
+      document.getElementById('monthlyNet').textContent = `₱${formatNumber(monthlyNet)}`;
+
+      const balanceEl = document.getElementById('totalBalance');
+      const savingsEl = document.getElementById('totalSavings');
+      const monthlyNetEl = document.getElementById('monthlyNet');
+
+      const balance_color = totalBalance >= 0 ? '#27ae60' : '#e74c3c';
+      const savings_color = totalEffectiveSavings >= 0 ? '#27ae60' : '#e74c3c';
+      const monthlyNet_color = monthlyNet >= 0 ? '#27ae60' : '#e74c3c';
+
+      balanceEl.style.color = balance_color;
+      savingsEl.style.color = savings_color;
+      monthlyNetEl.style.color = monthlyNet_color;
+    }
+    
+    renderTransactions();
+    calculateDashboardStats();
+  </script>
+</body>
+</html>

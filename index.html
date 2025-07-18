@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Save Wisely | Protect Your Peso</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 40px;
+      min-height: 100vh;
+      gap: 60px;
+    }
+
+    .hero-content {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 60px;
+    }
+
+    .hero-text {
+      flex: 1;
+      max-width: 500px;
+    }
+
+    .hero-text h4 {
+      color: #666;
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hero-text h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    .hero-text p {
+      font-size: 1.2rem;
+      color: #555;
+      margin-bottom: 40px;
+      line-height: 1.6;
+    }
+
+    .button {
+      display: inline-block;
+      background: linear-gradient(135deg, #d4a574 0%, #c7941f 100%);
+      color: white;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-right: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 15px rgba(212, 165, 116, 0.3);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 165, 116, 0.4);
+    }
+
+    .button.secondary {
+      background: transparent;
+      color: #d4a574;
+      border: 2px solid #d4a574;
+      box-shadow: none;
+    }
+
+    .button.secondary:hover {
+      background: #d4a574;
+      color: white;
+    }
+
+    .hero-image {
+      flex: 1;
+      max-width: 600px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: auto;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .form-container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+
+    .title {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 2.2rem;
+      font-weight: 700;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e1e8ed;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      background: #f8f9fa;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #d4a574;
+      background: white;
+    }
+
+    .debug-info {
+      background: #f8f9fa;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 10px;
+      font-size: 12px;
+      color: #666;
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+      border-left: 4px solid #d4a574;
+    }
+
+    .success {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      border-left: 4px solid #28a745;
+    }
+
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      border-left: 4px solid #dc3545;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .button.small {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+    }
+
+    .hint {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .hero-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 40px;
+      }
+
+      .hero-text h1 {
+        font-size: 2.5rem;
+      }
+
+      .hero {
+        padding: 40px 20px;
+      }
+
+      .form-container {
+        padding: 30px 20px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- === HERO SECTION === -->
+  <section id="intro" class="hero">
+    <div class="hero-content">
+      
+      <!-- Text Section -->
+      <div class="hero-text">
+        <h4>Peso Pilot</h4>
+        <h1>Save Every Peso</h1>
+        <p>
+          Tired of a tight budget? Track your daily expenses and protect your peso today. Let's grow your savings together!
+        </p>
+        <a href="#" class="button" id="startAccount">Create Account</a>
+        <a href="#" class="button secondary" id="alreadyAccount">Already have an account?</a>
+        <div class="hint">
+          <small>💡 First time? Click "Create Account" to register</small>
+        </div>
+      </div>
+
+      <!-- Image Section -->
+      <div class="hero-image">
+        <svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background -->
+          <rect width="400" height="300" fill="#f8f9fa" rx="20"/>
+          
+          <!-- Person -->
+          <circle cx="120" cy="120" r="25" fill="#8B5CF6"/>
+          <rect x="100" y="140" width="40" height="60" fill="#8B5CF6" rx="20"/>
+          <rect x="90" y="160" width="15" height="40" fill="#8B5CF6" rx="7"/>
+          <rect x="135" y="160" width="15" height="40" fill="#8B5CF6" rx="7"/>
+          
+          <!-- Money/Bills -->
+          <rect x="200" y="80" width="120" height="60" fill="#A855F7" rx="8"/>
+          <rect x="210" y="90" width="100" height="40" fill="#9333EA" rx="4"/>
+          <text x="260" y="115" fill="white" font-size="14" font-weight="bold" text-anchor="middle">₱100</text>
+          
+          <!-- Wallet -->
+          <rect x="250" y="160" width="80" height="50" fill="#1E40AF" rx="10"/>
+          <rect x="260" y="170" width="60" height="30" fill="#3B82F6" rx="5"/>
+          
+          <!-- Coins -->
+          <circle cx="180" cy="200" r="15" fill="#D4A574"/>
+          <circle cx="200" cy="220" r="12" fill="#C7941F"/>
+          <circle cx="160" cy="230" r="10" fill="#D4A574"/>
+          
+          <!-- Sparkles -->
+          <circle cx="320" cy="70" r="3" fill="#FDE047"/>
+          <circle cx="340" cy="90" r="2" fill="#FDE047"/>
+          <circle cx="360" cy="110" r="3" fill="#FDE047"/>
+          <circle cx="80" cy="90" r="2" fill="#FDE047"/>
+          <circle cx="90" cy="70" r="3" fill="#FDE047"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- === FORMS === -->
+  <div class="container">
+
+    <!-- Create Account Form -->
+    <div id="accountForm" class="form-container" style="display:none;">
+      <h1 class="title">Create Your Account</h1>
+
+      <div class="form-group">
+        <label for="username">Username/Email</label>
+        <input type="text" id="username" name="username" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+
+      <div class="form-group">
+        <label for="confirm">Confirm Password</label>
+        <input type="password" id="confirm" name="confirm" required>
+      </div>
+
+      <div class="button-group">
+        <button type="button" class="button" id="accountNext">Next</button>
+        <button type="button" class="button secondary" id="backToHome1">Back</button>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginForm" class="form-container" style="display:none;">
+      <h1 class="title">Welcome Back</h1>
+
+      <div class="form-group">
+        <label for="loginUsername">Username/Email</label>
+        <input type="text" id="loginUsername" name="loginUsername" required>
+      </div>
+
+      <div class="form-group">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" name="loginPassword" required>
+      </div>
+
+      <div id="messageDiv"></div>
+      <div id="debugInfo" class="debug-info" style="display:none;"></div>
+
+      <div class="button-group">
+        <button type="button" class="button" id="loginNext">Log In</button>
+        <button type="button" class="button secondary" id="backToHome2">Back</button>
+      </div>
+      
+      <div class="button-group">
+        <button type="button" class="button small secondary" id="toggleDebug">Show Debug Info</button>
+      </div>
+    </div>
+
+    <!-- Question Form -->
+    <div id="questionForm" class="form-container" style="display:none;">
+      <h1 class="title">Get Started</h1>
+
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="age">Age</label>
+        <input type="number" id="age" name="age" min="1" required>
+      </div>
+
+      <div class="form-group">
+        <label for="status">Are you a student or working?</label>
+        <select id="status" name="status" required>
+          <option value="">Select one</option>
+          <option value="student">Student</option>
+          <option value="working">Working</option>
+        </select>
+      </div>
+
+      <div id="conditionalFields"></div>
+
+      <div class="form-group" id="saveAmountContainer" style="display:none;">
+        <label for="saveAmount">How much do you want to save?</label>
+        <input type="number" id="saveAmount" name="saveAmount" min="0" required>
+      </div>
+<div class="button-group">
+  <form onsubmit="event.preventDefault(); window.location.href='Main Page.html';">
+    <button type="submit" class="button">Complete Setup</button>
+  </form>
+</div>
+
+  <!-- === SCRIPT === -->
+<script>
+  const startAccount = document.getElementById('startAccount');
+  const alreadyAccount = document.getElementById('alreadyAccount');
+  const intro = document.getElementById('intro');
+  const accountForm = document.getElementById('accountForm');
+  const loginForm = document.getElementById('loginForm');
+  const accountNext = document.getElementById('accountNext');
+  const loginNext = document.getElementById('loginNext');
+  const questionForm = document.getElementById('questionForm');
+  const statusSelect = document.getElementById('status');
+  const conditionalFields = document.getElementById('conditionalFields');
+  const saveAmountContainer = document.getElementById('saveAmountContainer');
+  const debugInfo = document.getElementById('debugInfo');
+  const messageDiv = document.getElementById('messageDiv');
+  const toggleDebug = document.getElementById('toggleDebug');
+  const backToHome1 = document.getElementById('backToHome1');
+  const backToHome2 = document.getElementById('backToHome2');
+
+  function showMessage(message, type = 'error') {
+    messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
+    setTimeout(() => {
+      messageDiv.innerHTML = '';
+    }, 5000);
+  }
+
+  function showForm(formToShow) {
+    intro.style.display = 'none';
+    accountForm.style.display = 'none';
+    loginForm.style.display = 'none';
+    questionForm.style.display = 'none';
+    if (formToShow) formToShow.style.display = 'block';
+    else intro.style.display = 'block';
+  }
+
+  startAccount.addEventListener('click', e => {
+    e.preventDefault();
+    showForm(accountForm);
+  });
+
+  alreadyAccount.addEventListener('click', e => {
+    e.preventDefault();
+    showForm(loginForm);
+  });
+
+  backToHome1.addEventListener('click', e => {
+    e.preventDefault();
+    showForm(null);
+  });
+
+  backToHome2.addEventListener('click', e => {
+    e.preventDefault();
+    showForm(null);
+  });
+
+  toggleDebug.addEventListener('click', e => {
+    e.preventDefault();
+    if (debugInfo.style.display === 'none') {
+      debugInfo.style.display = 'block';
+      toggleDebug.textContent = 'Hide Debug Info';
+    } else {
+      debugInfo.style.display = 'none';
+      toggleDebug.textContent = 'Show Debug Info';
+    }
+  });
+
+  accountNext.addEventListener('click', () => {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const confirm = document.getElementById('confirm').value.trim();
+
+    if (!username || !password || !confirm) {
+      showMessage('Please fill out all fields.');
+      return;
+    }
+
+    if (password !== confirm) {
+      showMessage('Passwords do not match.');
+      return;
+    }
+
+    const userData = {
+      username,
+      password,
+      created: new Date().toISOString(),
+      hasCompletedQuestionForm: false
+    };
+
+    localStorage.setItem('savedUser', JSON.stringify(userData));
+
+    showMessage('Account created successfully!', 'success');
+    setTimeout(() => {
+      showForm(questionForm);
+    }, 1000);
+  });
+
+  loginNext.addEventListener('click', () => {
+    const loginUsername = document.getElementById('loginUsername').value.trim();
+    const loginPassword = document.getElementById('loginPassword').value.trim();
+
+    if (!loginUsername || !loginPassword) {
+      showMessage('Please enter username and password.');
+      return;
+    }
+
+    const savedUserRaw = localStorage.getItem('savedUser');
+    let savedUser = null;
+
+    if (savedUserRaw) {
+      try {
+        savedUser = JSON.parse(savedUserRaw);
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
+    }
+
+    debugInfo.innerHTML = `
+Debug Info:
+-----------
+Entered Username: "${loginUsername}" (length: ${loginUsername.length})
+Entered Password: "${loginPassword}" (length: ${loginPassword.length})
+Saved User: ${savedUser ? 'Found' : 'Not found'}
+${savedUser ? `
+Stored Username: "${savedUser.username}" (length: ${savedUser.username.length})
+Stored Password: "${savedUser.password}" (length: ${savedUser.password.length})
+Username Match: ${savedUser.username === loginUsername}
+Password Match: ${savedUser.password === loginPassword}
+Account Created: ${savedUser.created || 'Unknown'}
+` : ''}
+`;
+
+    if (!savedUser) {
+      showMessage('No account found. Please create an account first.');
+      return;
+    }
+
+    if (savedUser.username !== loginUsername || savedUser.password !== loginPassword) {
+      showMessage('Invalid credentials. Please check your username and password.');
+      return;
+    }
+
+    if (savedUser.hasCompletedQuestionForm) {
+      showMessage(`Welcome back, ${loginUsername}!`, 'success');
+      setTimeout(() => {
+        window.location.href = 'Main Page.html';
+      }, 1000);
+    } else {
+      showMessage('Please complete the setup process.', 'success');
+      setTimeout(() => {
+        showForm(questionForm);
+      }, 1000);
+    }
+  });
+
+  statusSelect.addEventListener('change', () => {
+    const status = statusSelect.value;
+    conditionalFields.innerHTML = '';
+    saveAmountContainer.style.display = 'none';
+
+    if (status === 'student') {
+      conditionalFields.innerHTML = `
+        <div class="form-group">
+          <label for="allowance_period">Do you get your allowance daily, weekly, or monthly?</label>
+          <select name="allowance_period" id="allowance_period" required>
+            <option value="">Select one</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="allowance">How much is your peso allowance?</label>
+          <input type="number" name="allowance" id="allowance" min="0" required>
+        </div>
+      `;
+      saveAmountContainer.style.display = 'block';
+    } else if (status === 'working') {
+      conditionalFields.innerHTML = `
+        <div class="form-group">
+          <label for="salary_period">Do you get your salary daily, weekly, or monthly?</label>
+          <select name="salary_period" id="salary_period" required>
+            <option value="">Select one</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="salary">How much is your peso salary?</label>
+          <input type="number" name="salary" id="salary" min="0" required>
+        </div>
+      `;
+      saveAmountContainer.style.display = 'block';
+    }
+  });
+
+  questionForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const savedUserRaw = localStorage.getItem('savedUser');
+    if (savedUserRaw) {
+      const updatedUser = JSON.parse(savedUserRaw);
+      updatedUser.hasCompletedQuestionForm = true;
+      localStorage.setItem('savedUser', JSON.stringify(updatedUser));
+    }
+
+    alert('Setup complete! Welcome to Save Every Peso!');
+    showMessage('Setup completed successfully!', 'success');
+    setTimeout(() => {
+      window.location.href = 'Main Page.html';
+    }, 1000);
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Save Wisely | Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    #budgetOverlay, #allowanceOverlay, #editBudgetOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #budgetPrompt, #allowancePrompt, #editBudgetPrompt {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    #budgetPrompt input,
+    #allowancePrompt input,
+    #editBudgetPrompt input {
+      margin-bottom: 10px;
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+    }
+
+    .button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 1rem;
+      background-color: #d4981e;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      background: #f3f4f6;
+      border-top: 1px solid #ccc;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+
+    .nav-item {
+      text-align: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      font-weight: bold;
+      color: #d4981e;
+    }
+
+    #calendarNotesList li {
+      font-size: 0.95rem;
+      margin-bottom: 5px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="allowanceOverlay">
+    <div id="allowancePrompt">
+      <h2>Set Your Allowance for Today</h2>
+      <input type="text" id="setAllowance" placeholder="Enter your allowance" oninput="formatNumberInput(event)" />
+      <button class="button" id="setAllowanceBtn">Set</button>
+    </div>
+  </div>
+
+  <div id="budgetOverlay">
+    <div id="budgetPrompt">
+      <h2>Set Today's Budget</h2>
+      <p>Enter your daily budget for each category:</p>
+      <input type="text" placeholder="Food" id="bud_food" oninput="formatNumberInput(event)" />
+      <input type="text" placeholder="Transportation" id="bud_transpo" oninput="formatNumberInput(event)" />
+      <input type="text" placeholder="Housing" id="bud_housing" oninput="formatNumberInput(event)" />
+      <input type="text" placeholder="Personal Care" id="bud_care" oninput="formatNumberInput(event)" />
+      <input type="text" placeholder="Shopping" id="bud_shop" oninput="formatNumberInput(event)" />
+      <input type="text" placeholder="Health Care" id="bud_health" oninput="formatNumberInput(event)" />
+      <button class="button" onclick="setBudgets()">Set Budgets</button>
+    </div>
+  </div>
+
+  <div id="editBudgetOverlay">
+    <div id="editBudgetPrompt">
+      <h2>Edit Food Budget</h2>
+      <input type="text" id="editFoodBudget" placeholder="Enter new budget for Food" oninput="formatNumberInput(event)" />
+      <button class="button" onclick="updateFoodBudget()">Update</button>
+      <button class="button" onclick="closeEditBudget()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="container intro">
+    <h1 class="title">Welcome, <span id="userDisplay"></span>!</h1>
+    <p style="text-align:center;">Let’s track and grow your savings wisely.</p>
+
+    <h2 class="summary-title">Spending: ₱<span id="totalExpenses">0</span></h2>
+    <h2 class="summary-title">Daily Allowance: ₱<span id="dailyAllowance">0</span></h2>
+
+    <div class="card-grid">
+      <div class="card yellow" id="foodCard"><p>Food & Drink</p><h3>₱<span id="foodAmount">0</span> / <span id="foodBudget">0</span></h3></div>
+      <div class="card blue" id="transpoCard"><p>Transportation</p><h3>₱<span id="transpoAmount">0</span> / <span id="transpoBudget">0</span></h3></div>
+      <div class="card orange" id="housingCard"><p>Housing</p><h3>₱<span id="housingAmount">0</span> / <span id="housingBudget">0</span></h3></div>
+      <div class="card purple" id="careCard"><p>Personal Care</p><h3>₱<span id="careAmount">0</span> / <span id="careBudget">0</span></h3></div>
+      <div class="card red" id="shopCard"><p>Shopping</p><h3>₱<span id="shopAmount">0</span> / <span id="shopBudget">0</span></h3></div>
+      <div class="card teal" id="healthCard"><p>Health Care</p><h3>₱<span id="healthAmount">0</span> / <span id="healthBudget">0</span></h3></div>
+    </div>
+
+    <div class="form-group">
+      <label for="expense">Add Expense</label>
+      <input type="text" id="expense" placeholder="Enter expense in pesos" oninput="formatNumberInput(event)" />
+      <select id="expenseCategory">
+        <option value="food">Food & Drink</option>
+        <option value="transpo">Transportation</option>
+        <option value="housing">Housing</option>
+        <option value="care">Personal Care</option>
+        <option value="shop">Shopping</option>
+        <option value="health">Health Care</option>
+      </select>
+      <button class="button" id="addExpense">Add</button>
+    </div>
+
+    <div class="form-group">
+      <label for="saving">Add Saving</label>
+      <input type="text" id="saving" placeholder="Enter saving amount" oninput="formatNumberInput(event)" />
+      <button class="button" id="addSaving">Add Saving</button>
+    </div>
+
+    <div style="margin-top: 30px;">
+      <h2 style="color: #d4981e;">📅 Upcoming Expenses</h2>
+      <ul id="calendarNotesList" style="list-style-type: disc; padding-left: 20px;"></ul>
+    </div>
+
+    <div style="text-align:center; margin-top: 30px;">
+      <button class="button" id="logout">Logout</button>
+      <button class="button" id="resetDay">Reset Day</button>
+      <button class="button" id="exportExcel">Export to Excel</button>
+    </div>
+
+    <nav class="nav-bar">
+      <div class="nav-item" onclick="window.location.href='Transactions.html'">📄<br>Transactions</div>
+      <div class="nav-item active" onclick="window.location.href='Calendar.html'">📅<br>Calendar</div>
+      <div class="nav-item active" onclick="window.location.href='stats.html'">📊<br>Stats</div>
+    </nav>
+  </div>  
+
+  <br>
+
+  <script>
+    const savedUser = JSON.parse(localStorage.getItem('savedUser'));
+    if (savedUser?.username) {
+      document.getElementById('userDisplay').innerText = savedUser.username;
+    } else {
+      window.location.href = 'index.html';
+    }
+
+    let data = JSON.parse(localStorage.getItem('budgetData')) || {
+      totalSavings: 0,
+      totalExpenses: 0,
+      dailyAllowance: 0,
+      budgets: { food: 0, transpo: 0, housing: 0, care: 0, shop: 0, health: 0 },
+      totals: { food: 0, transpo: 0, housing: 0, care: 0, shop: 0, health: 0 }
+    };
+
+    const hasSetBudgetToday = localStorage.getItem('hasSetBudgetToday');
+
+    if (data.dailyAllowance === 0) {
+      document.getElementById('allowanceOverlay').style.display = 'flex';
+    } else if (!hasSetBudgetToday) {
+      document.getElementById('budgetOverlay').style.display = 'flex';
+    }
+
+    function formatNumber(num) {
+        return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    /**
+     * NEW: Formats number inputs with commas in real-time.
+     */
+    function formatNumberInput(event) {
+        const input = event.target;
+        // Remove all non-digit characters except for a decimal point
+        let value = input.value.replace(/[^0-9.]/g, '');
+        const parts = value.split('.');
+        // Format the integer part with commas
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        // Rejoin the parts
+        input.value = parts.join('.');
+    }
+
+    document.getElementById('setAllowanceBtn').addEventListener('click', () => {
+      // UPDATED: Remove commas before parsing
+      const rawValue = document.getElementById('setAllowance').value.replace(/,/g, '');
+      const val = parseFloat(rawValue);
+
+      if (!isNaN(val) && val >= 0) {
+        data.dailyAllowance = val;
+        saveData();
+        updateUI();
+        document.getElementById('allowanceOverlay').style.display = 'none';
+        if (!hasSetBudgetToday) {
+          document.getElementById('budgetOverlay').style.display = 'flex';
+        }
+      }
+    });
+
+    function setBudgets() {
+      const categories = ['food', 'transpo', 'housing', 'care', 'shop', 'health'];
+      categories.forEach(cat => {
+        // UPDATED: Remove commas before parsing
+        const rawValue = document.getElementById('bud_' + cat).value.replace(/,/g, '');
+        const val = parseFloat(rawValue);
+
+        if (!isNaN(val) && val >= 0) {
+          data.budgets[cat] = val;
+        }
+      });
+      localStorage.setItem('hasSetBudgetToday', 'true');
+      saveData();
+      updateUI();
+      document.getElementById('budgetOverlay').style.display = 'none';
+    }
+
+    document.getElementById('addExpense').addEventListener('click', () => {
+      // UPDATED: Remove commas before parsing
+      const rawValue = document.getElementById('expense').value.replace(/,/g, '');
+      const val = parseFloat(rawValue);
+      const category = document.getElementById('expenseCategory').value;
+      if (isNaN(val) || val <= 0) return alert('Enter valid expense.');
+
+      data.totalExpenses += val;
+      data.totals[category] += val;
+      data.dailyAllowance -= val;
+
+      if (data.totals[category] > data.budgets[category]) {
+        alert(`⚠️ You exceeded your budget for ${category}!`);
+      }
+
+      const transactions = JSON.parse(localStorage.getItem('transactionsLog')) || [];
+      transactions.push({ date: new Date().toLocaleString(), type: 'Expense', category, amount: val });
+      localStorage.setItem('transactionsLog', JSON.stringify(transactions));
+
+      saveData();
+      updateUI();
+      document.getElementById('expense').value = '';
+    });
+
+    document.getElementById('addSaving').addEventListener('click', () => {
+      // UPDATED: Remove commas before parsing
+      const rawValue = document.getElementById('saving').value.replace(/,/g, '');
+      const val = parseFloat(rawValue);
+      if (isNaN(val) || val <= 0) return alert('Enter valid saving.');
+      data.totalSavings += val;
+      data.dailyAllowance += val;
+
+      const transactions = JSON.parse(localStorage.getItem('transactionsLog')) || [];
+      transactions.push({ date: new Date().toLocaleString(), type: 'Saving', category: 'N/A', amount: val });
+      localStorage.setItem('transactionsLog', JSON.stringify(transactions));
+
+      saveData();
+      updateUI();
+      document.getElementById('saving').value = '';
+    });
+
+    document.getElementById('foodCard').addEventListener('click', () => {
+      document.getElementById('editFoodBudget').value = data.budgets.food || '';
+      document.getElementById('editBudgetOverlay').style.display = 'flex';
+    });
+
+    function updateFoodBudget() {
+      // UPDATED: Remove commas before parsing
+      const rawValue = document.getElementById('editFoodBudget').value.replace(/,/g, '');
+      const val = parseFloat(rawValue);
+
+      if (!isNaN(val) && val >= 0) {
+        data.budgets.food = val;
+        saveData();
+        updateUI();
+        closeEditBudget();
+      } else {
+        alert('Please enter a valid number.');
+      }
+    }
+
+    function closeEditBudget() {
+      document.getElementById('editBudgetOverlay').style.display = 'none';
+    }
+
+    function updateUI() {
+      document.getElementById('dailyAllowance').innerText = formatNumber(data.dailyAllowance);
+      document.getElementById('totalExpenses').innerText = formatNumber(data.totalExpenses);
+      for (let cat in data.budgets) {
+        document.getElementById(cat + 'Amount').innerText = formatNumber(data.totals[cat]);
+        document.getElementById(cat + 'Budget').innerText = formatNumber(data.budgets[cat]);
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem('budgetData', JSON.stringify(data));
+    }
+
+    function loadCalendarNotes() {
+      const notes = JSON.parse(localStorage.getItem('calendarNotes')) || {};
+      const list = document.getElementById('calendarNotesList');
+      list.innerHTML = '';
+
+      const today = new Date();
+      const sorted = Object.keys(notes).map(date => ({
+        date, parsed: new Date(date), note: notes[date]
+      })).filter(n => n.parsed >= today).sort((a, b) => a.parsed - b.parsed);
+
+      sorted.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.date}: ${item.note}`;
+        list.appendChild(li);
+      });
+
+      if (sorted.length === 0) {
+        list.innerHTML = '<li style="color: #888;">No upcoming expenses noted.</li>';
+      }
+    }
+
+    function exportTransactionsToExcel() {
+        const transactions = JSON.parse(localStorage.getItem('transactionsLog')) || [];
+        if (transactions.length === 0) {
+            alert("No transactions to export!");
+            return;
+        }
+
+        const worksheetData = [
+            ["Date", "Type", "Category", "Amount"]
+        ];
+
+        transactions.forEach(t => {
+            worksheetData.push([t.date, t.type, t.category, t.amount]);
+        });
+
+        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+
+        XLSX.writeFile(workbook, "transactions.xlsx");
+    }
+
+    document.getElementById('exportExcel').addEventListener('click', exportTransactionsToExcel);
+
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.removeItem('savedUser');
+      window.location.href = 'index.html';
+    });
+
+    document.getElementById('resetDay').addEventListener('click', () => {
+      localStorage.removeItem('hasSetBudgetToday');
+      localStorage.removeItem('budgetData');
+      location.reload();
+    });
+
+    updateUI();
+    loadCalendarNotes();
+  </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Save Wisely | Calendar</title>
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Calendar Expense Planner</h1>
+    <p style="text-align:center">Click a day to add an expense. It will reflect on your dashboard and notes.</p>
+
+
+    <div class="calendar">
+      <div class="weekday">Sun</div>
+      <div class="weekday">Mon</div>
+      <div class="weekday">Tue</div>
+      <div class="weekday">Wed</div>
+      <div class="weekday">Thu</div>
+      <div class="weekday">Fri</div>
+      <div class="weekday">Sat</div>
+    </div>
+
+
+    <div class="calendar" id="calendar"></div>
+
+    <div style="text-align:center; margin-top: 30px;">
+      <button class="button" onclick="window.location.href='Main Page.html'">Back to Dashboard</button>
+      <button class="button" onclick="clearCalendarNotes()">🗑️ Clear Calendar Notes</button>
+    </div>
+  </div>
+
+  <script>
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const dayToday = today.getDate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay();
+
+    const calendar = document.getElementById('calendar');
+    const budgetData = JSON.parse(localStorage.getItem('budgetData')) || {
+      totalSavings: 0,
+      totalExpenses: 0,
+      budgets: { food: 0, transpo: 0, housing: 0, care: 0, shop: 0, health: 0 },
+      totals: { food: 0, transpo: 0, housing: 0, care: 0, shop: 0, health: 0 }
+    };
+    const notesData = JSON.parse(localStorage.getItem('calendarNotes')) || {};
+    const transactions = JSON.parse(localStorage.getItem('transactionsLog')) || [];
+
+
+    function generateCalendar() {
+      calendar.innerHTML = '';
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement('div');
+        calendar.appendChild(empty);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateKey = `${year}-${month + 1}-${day}`;
+        const savedNote = notesData[dateKey];
+
+        const dayBox = document.createElement('div');
+        dayBox.classList.add('day');
+        if (day === dayToday) dayBox.classList.add('today');
+
+        dayBox.innerHTML = `
+          <h4>${day}</h4>
+          <select class="expense-input">
+            <option value="">--Category--</option>
+            <option value="food">Food</option>
+            <option value="transpo">Transportation</option>
+            <option value="housing">Housing</option>
+            <option value="care">Personal Care</option>
+            <option value="shop">Shopping</option>
+            <option value="health">Health Care</option>
+          </select>
+          <input class="expense-input" type="number" min="0" placeholder="₱ Amount" />
+          <button class="button">Add</button>
+          <div class="note" style="display: ${savedNote ? 'block' : 'none'}">${savedNote || ''}</div>
+        `;
+
+        const btn = dayBox.querySelector('button');
+        const input = dayBox.querySelector('input');
+        const select = dayBox.querySelector('select');
+        const noteBox = dayBox.querySelector('.note');
+
+        btn.addEventListener('click', () => {
+          const amount = parseFloat(input.value);
+          const category = select.value;
+
+          if (!category || isNaN(amount) || amount <= 0) {
+            alert('Please fill in both category and amount.');
+            return;
+          }
+
+          const selectedDate = new Date(year, month, day);
+          const isToday = selectedDate.toDateString() === today.toDateString();
+
+          const noteText = `₱${amount.toFixed(2)} for ${category}`;
+          notesData[dateKey] = noteText;
+          localStorage.setItem('calendarNotes', JSON.stringify(notesData));
+
+          if (isToday) {
+            budgetData.totalExpenses += amount;
+            budgetData.totals[category] += amount;
+
+            transactions.push({
+              date: selectedDate.toLocaleString(),
+              type: 'Expense',
+              category,
+              amount: amount
+            });
+
+            localStorage.setItem('transactionsLog', JSON.stringify(transactions));
+            localStorage.setItem('budgetData', JSON.stringify(budgetData));
+          }
+
+          // Update UI
+          noteBox.textContent = noteText;
+          noteBox.style.display = 'block';
+
+          alert(`₱${amount} added to ${category} on ${dateKey}.`);
+          input.value = '';
+          select.value = '';
+        });
+
+        calendar.appendChild(dayBox);
+      }
+    }
+
+    function clearCalendarNotes() {
+      if (confirm('Are you sure you want to clear all calendar notes?')) {
+        localStorage.removeItem('calendarNotes');
+        location.reload();
+      }
+    }
+
+    generateCalendar();
+  </script>
+</body>
+</html>
