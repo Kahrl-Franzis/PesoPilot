@@ -159,18 +159,29 @@
 
     <nav class="nav-bar">
       <div class="nav-item" onclick="window.location.href='Transactions.html'">📄<br>Transactions</div>
-      <div class="nav-item active" onclick="window.location.href='Calendar.html'">📅<br>Calendar</div>
-      <div class="nav-item active" onclick="window.location.href='Stats.html'">📊<br>Stats</div>
+      <div class="nav-item" onclick="window.location.href='Calendar.html'">📅<br>Calendar</div>
+      <div class="nav-item" onclick="window.location.href='Stats.html'">📊<br>Stats</div>
     </nav>
   </div>  
 
-  <br>
-
   <script>
+    // --- SCRIPT TO PREVENT BACK-BUTTON ACCESS AFTER LOGOUT ---
+    // This listener checks if the page is loaded from the browser's cache
+    window.addEventListener('pageshow', function(event) {
+      // The 'persisted' property is true if the page is from the cache
+      if (event.persisted) {
+        // Force a full reload of the page from the server to re-run checks
+        window.location.reload();
+      }
+    });
+
+    // --- AUTHENTICATION CHECK ---
+    // This script runs every time the page loads
     const savedUser = JSON.parse(localStorage.getItem('savedUser'));
     if (savedUser?.username) {
       document.getElementById('userDisplay').innerText = savedUser.username;
     } else {
+      // If no user is logged in, redirect to the login page
       window.location.href = 'index.html';
     }
 
@@ -194,22 +205,15 @@
         return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
-    /**
-     * NEW: Formats number inputs with commas in real-time.
-     */
     function formatNumberInput(event) {
         const input = event.target;
-        // Remove all non-digit characters except for a decimal point
         let value = input.value.replace(/[^0-9.]/g, '');
         const parts = value.split('.');
-        // Format the integer part with commas
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-        // Rejoin the parts
         input.value = parts.join('.');
     }
 
     document.getElementById('setAllowanceBtn').addEventListener('click', () => {
-      // UPDATED: Remove commas before parsing
       const rawValue = document.getElementById('setAllowance').value.replace(/,/g, '');
       const val = parseFloat(rawValue);
 
@@ -227,7 +231,6 @@
     function setBudgets() {
       const categories = ['food', 'transpo', 'housing', 'care', 'shop', 'health'];
       categories.forEach(cat => {
-        // UPDATED: Remove commas before parsing
         const rawValue = document.getElementById('bud_' + cat).value.replace(/,/g, '');
         const val = parseFloat(rawValue);
 
@@ -242,7 +245,6 @@
     }
 
     document.getElementById('addExpense').addEventListener('click', () => {
-      // UPDATED: Remove commas before parsing
       const rawValue = document.getElementById('expense').value.replace(/,/g, '');
       const val = parseFloat(rawValue);
       const category = document.getElementById('expenseCategory').value;
@@ -257,7 +259,7 @@
       }
 
       const transactions = JSON.parse(localStorage.getItem('transactionsLog')) || [];
-      transactions.push({ date: new Date().toLocaleString(), type: 'Expense', category, amount: val });
+      transactions.push({ date: new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }), type: 'Expense', category, amount: val });
       localStorage.setItem('transactionsLog', JSON.stringify(transactions));
 
       saveData();
@@ -266,7 +268,6 @@
     });
 
     document.getElementById('addSaving').addEventListener('click', () => {
-      // UPDATED: Remove commas before parsing
       const rawValue = document.getElementById('saving').value.replace(/,/g, '');
       const val = parseFloat(rawValue);
       if (isNaN(val) || val <= 0) return alert('Enter valid saving.');
@@ -274,7 +275,7 @@
       data.dailyAllowance += val;
 
       const transactions = JSON.parse(localStorage.getItem('transactionsLog')) || [];
-      transactions.push({ date: new Date().toLocaleString(), type: 'Saving', category: 'N/A', amount: val });
+      transactions.push({ date: new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }), type: 'Saving', category: 'N/A', amount: val });
       localStorage.setItem('transactionsLog', JSON.stringify(transactions));
 
       saveData();
@@ -288,7 +289,6 @@
     });
 
     function updateFoodBudget() {
-      // UPDATED: Remove commas before parsing
       const rawValue = document.getElementById('editFoodBudget').value.replace(/,/g, '');
       const val = parseFloat(rawValue);
 
@@ -365,14 +365,24 @@
     document.getElementById('exportExcel').addEventListener('click', exportTransactionsToExcel);
 
     document.getElementById('logout').addEventListener('click', () => {
+      const transactions = JSON.parse(localStorage.getItem('transactionsLog')) || [];
+      transactions.push({
+        date: new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' }),
+        type: 'System',
+        category: 'Logout',
+        amount: 0
+      });
+      localStorage.setItem('transactionsLog', JSON.stringify(transactions));
       localStorage.removeItem('savedUser');
       window.location.href = 'index.html';
     });
 
     document.getElementById('resetDay').addEventListener('click', () => {
-      localStorage.removeItem('hasSetBudgetToday');
-      localStorage.removeItem('budgetData');
-      location.reload();
+      if (confirm('Are you sure you want to reset the day? This will clear your current allowance, budgets, and expenses.')) {
+        localStorage.removeItem('hasSetBudgetToday');
+        localStorage.removeItem('budgetData');
+        location.reload();
+      }
     });
 
     updateUI();
